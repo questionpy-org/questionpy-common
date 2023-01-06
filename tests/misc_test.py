@@ -196,5 +196,5 @@ def test_to_str(value: Bytes, expected: str) -> None:
 
 def test_repr() -> None:
     with patch.object(Bytes, '__str__', return_value='test') as mock:
-        assert repr(Bytes(1)) == "Bytes(test)"
+        assert repr(Bytes(1)) == 'Bytes(test)'
         mock.assert_called_once_with()
