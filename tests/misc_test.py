@@ -143,7 +143,7 @@ def test_incorrect_input(value: str) -> None:
     ('  1 TiB  ', TB),
 ])
 def test_from_string(string: str, expected: int) -> None:
-    assert Bytes.from_str(string) == expected
+    assert Bytes.from_string(string) == expected
 
 
 @pytest.mark.parametrize('string', [
@@ -155,7 +155,7 @@ def test_from_string(string: str, expected: int) -> None:
 ])
 def test_from_string_not_valid(string: str) -> None:
     with pytest.raises(ValueError):
-        Bytes.from_str(string)
+        Bytes.from_string(string)
 
 
 @pytest.mark.parametrize('value, unit, expected', [
@@ -180,8 +180,8 @@ def test_from_string_not_valid(string: str) -> None:
     (Bytes(1536, ByteSize.KiB), ByteSize.GiB, 1.5),
     (Bytes(-1.5, ByteSize.GiB), ByteSize.KiB, -1536),
 
-    (Bytes(2, ByteSize.MiB), ByteSize.B, 2*MB),
-    (Bytes(-2, ByteSize.GiB), ByteSize.B, -2*MB),
+    (Bytes(2, ByteSize.MiB), ByteSize.B, 2 * MB),
+    (Bytes(-2, ByteSize.GiB), ByteSize.B, -2 * MB),
 ])
 def test_convert_to(value: Bytes, unit: ByteSize, expected: int) -> None:
     pytest.approx(value.convert_to(unit), expected)

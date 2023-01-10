@@ -36,18 +36,8 @@ class Bytes(int):
             return super().__new__(cls, round(float(value) * unit.value))
         raise TypeError(f"Cannot convert {type(value)} to Bytes.")
 
-    def convert_to(self, unit: ByteSize) -> float:
-        """
-        Convert to given unit.
-
-        :param unit: Unit to convert to.
-        :return: Converted value.
-        """
-
-        return self / unit
-
-    @staticmethod
-    def from_str(string: str) -> 'Bytes':
+    @classmethod
+    def from_string(cls, string: str) -> 'Bytes':
         """
         Convert a string to a Bytes object.
 
@@ -67,16 +57,26 @@ class Bytes(int):
         # Check binary prefix and return the correct value
         try:
             if sanitized.endswith('k'):
-                return Bytes(sanitized[:-1], ByteSize.KiB)
+                return cls(sanitized[:-1], ByteSize.KiB)
             if sanitized.endswith('m'):
-                return Bytes(sanitized[:-1], ByteSize.MiB)
+                return cls(sanitized[:-1], ByteSize.MiB)
             if sanitized.endswith('g'):
-                return Bytes(sanitized[:-1], ByteSize.GiB)
+                return cls(sanitized[:-1], ByteSize.GiB)
             if sanitized.endswith('t'):
-                return Bytes(sanitized[:-1], ByteSize.TiB)
-            return Bytes(sanitized)
+                return cls(sanitized[:-1], ByteSize.TiB)
+            return cls(sanitized)
         except ValueError as e:
-            raise ValueError(f"Could not convert '{string}' to Bytes.") from e
+            raise ValueError(f"Could not convert '{string}'") from e
+
+    def convert_to(self, unit: ByteSize) -> float:
+        """
+        Convert to given unit.
+
+        :param unit: Unit to convert to.
+        :return: Converted value.
+        """
+
+        return self / unit
 
     def __str__(self) -> str:
         if self._string:
