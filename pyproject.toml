@@ -22,6 +22,9 @@ pylint-pytest = "^1.1.2"
 mypy = "^0.971"
 flake8 = "^5.0.4"
 coverage = { extras = ["toml"], version = "^6.5.0" }
+tox = "^4.2.6"
+tox-gh-actions = "^3.0.0"
+
 
 [tool.pytest.ini_options]
 # https://github.com/pytest-dev/pytest-asyncio#auto-mode
@@ -80,3 +83,40 @@ plugins = "pydantic.mypy"
 disallow_untyped_defs = true
 strict_optional = true
 show_error_codes = true
+
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+env_list =
+    py{39,310,311}-pytest
+    pylint
+    flake8
+    mypy
+
+minversion = 4.2.6
+
+[gh-actions]
+python =
+    3.9: py39
+    3.10: py310
+    3.11: py311
+
+[testenv]
+description = run the tests with pytest
+allowlist_externals = poetry
+commands =
+    poetry run coverage run -m pytest {tty:--color=yes} tests
+
+[testenv:pylint]
+commands =
+    poetry run pylint questionpy_common tests
+
+[testenv:flake8]
+commands =
+    poetry run flake8 questionpy_common tests
+
+[testenv:mypy]
+commands =
+    poetry run mypy questionpy_common tests
+"""
