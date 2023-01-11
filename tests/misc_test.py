@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from questionpy_common.misc import Bytes, ByteSize
+from questionpy_common.misc import Size, SizeUnit
 
 
 KB = 1024
@@ -12,83 +12,83 @@ TB = 1024**4
 
 
 @pytest.mark.parametrize('byte_size, expected', [
-    (ByteSize.B, 1),
-    (ByteSize.KiB, KB),
-    (ByteSize.MiB, MB),
-    (ByteSize.GiB, GB),
-    (ByteSize.TiB, TB),
+    (SizeUnit.B, 1),
+    (SizeUnit.KiB, KB),
+    (SizeUnit.MiB, MB),
+    (SizeUnit.GiB, GB),
+    (SizeUnit.TiB, TB),
 ])
-def test_byte_size(byte_size: ByteSize, expected: int) -> None:
+def test_byte_size(byte_size: SizeUnit, expected: int) -> None:
     assert byte_size == expected
 
 
 @pytest.mark.parametrize('value, unit, expected', [
     # Integers.
-    (1, ByteSize.B, 1),
-    (1024, ByteSize.B, KB),
-    (1, ByteSize.KiB, KB),
-    (1, ByteSize.MiB, MB),
-    (1, ByteSize.GiB, GB),
-    (1, ByteSize.TiB, TB),
-    (-1, ByteSize.KiB, -KB),
+    (1, SizeUnit.B, 1),
+    (1024, SizeUnit.B, KB),
+    (1, SizeUnit.KiB, KB),
+    (1, SizeUnit.MiB, MB),
+    (1, SizeUnit.GiB, GB),
+    (1, SizeUnit.TiB, TB),
+    (-1, SizeUnit.KiB, -KB),
 
     # Floats.
-    (0.4, ByteSize.B, 0),
-    (0.6, ByteSize.B, 1),
-    (1.0, ByteSize.B, 1),
-    (0.5, ByteSize.KiB, 512),
+    (0.4, SizeUnit.B, 0),
+    (0.6, SizeUnit.B, 1),
+    (1.0, SizeUnit.B, 1),
+    (0.5, SizeUnit.KiB, 512),
 
-    (-0.4, ByteSize.B, 0),
-    (-0.6, ByteSize.B, -1),
-    (-0.5, ByteSize.KiB, -512),
+    (-0.4, SizeUnit.B, 0),
+    (-0.6, SizeUnit.B, -1),
+    (-0.5, SizeUnit.KiB, -512),
 
     # Strings.
-    ('0.4', ByteSize.B, 0),
-    ('0.6', ByteSize.B, 1),
-    ('1.5', ByteSize.KiB, 1536),
-    ('1', ByteSize.MiB, MB),
-    ('1', ByteSize.GiB, GB),
-    ('1', ByteSize.TiB, TB),
+    ('0.4', SizeUnit.B, 0),
+    ('0.6', SizeUnit.B, 1),
+    ('1.5', SizeUnit.KiB, 1536),
+    ('1', SizeUnit.MiB, MB),
+    ('1', SizeUnit.GiB, GB),
+    ('1', SizeUnit.TiB, TB),
 
-    ('+0.4', ByteSize.B, 0),
-    ('+0.6', ByteSize.B, 1),
-    ('+1.5', ByteSize.KiB, 1536),
-    ('+1', ByteSize.MiB, MB),
-    ('+1', ByteSize.GiB, GB),
-    ('+1', ByteSize.TiB, TB),
+    ('+0.4', SizeUnit.B, 0),
+    ('+0.6', SizeUnit.B, 1),
+    ('+1.5', SizeUnit.KiB, 1536),
+    ('+1', SizeUnit.MiB, MB),
+    ('+1', SizeUnit.GiB, GB),
+    ('+1', SizeUnit.TiB, TB),
 
-    ('-0.4', ByteSize.B, 0),
-    ('-0.6', ByteSize.B, -1),
-    ('-1.5', ByteSize.KiB, -1536),
-    ('-1', ByteSize.MiB, -MB),
-    ('-1', ByteSize.GiB, -GB),
-    ('-1', ByteSize.TiB, -TB),
+    ('-0.4', SizeUnit.B, 0),
+    ('-0.6', SizeUnit.B, -1),
+    ('-1.5', SizeUnit.KiB, -1536),
+    ('-1', SizeUnit.MiB, -MB),
+    ('-1', SizeUnit.GiB, -GB),
+    ('-1', SizeUnit.TiB, -TB),
 ])
-def test_init(value: float, unit: ByteSize, expected: int) -> None:
-    assert Bytes(value, unit) == expected
+def test_init(value: float, unit: SizeUnit, expected: int) -> None:
+    assert Size(value, unit) == expected
 
 
 @pytest.mark.parametrize('value', [
-    Bytes(0),
-    Bytes(-0),
-    Bytes(+0),
-    Bytes(0.0),
-    Bytes(-0.0),
-    Bytes(+0.0),
-    Bytes('0'),
-    Bytes('-0'),
-    Bytes('+0'),
-    Bytes('0.0'),
-    Bytes('-0.0'),
-    Bytes('+0.0')
+    Size(0),
+    Size(-0),
+    Size(+0),
+    Size(0.0),
+    Size(-0.0),
+    Size(+0.0),
+    Size('0'),
+    Size('-0'),
+    Size('+0'),
+    Size('0.0'),
+    Size('-0.0'),
+    Size('+0.0')
 ])
-def test_zero(value: Bytes) -> None:
+def test_zero(value: Size) -> None:
     assert 0 == value
 
 
 def test_incorrect_type() -> None:
     with pytest.raises(TypeError):
-        Bytes([])  # type: ignore
+        Size([])  # type: ignore
 
 
 @pytest.mark.parametrize('value', [
@@ -108,7 +108,7 @@ def test_incorrect_type() -> None:
 ])
 def test_incorrect_input(value: str) -> None:
     with pytest.raises(ValueError):
-        Bytes(value)
+        Size(value)
 
 
 @pytest.mark.parametrize('string, expected', [
@@ -143,7 +143,7 @@ def test_incorrect_input(value: str) -> None:
     ('  1 TiB  ', TB),
 ])
 def test_from_string(string: str, expected: int) -> None:
-    assert Bytes.from_string(string) == expected
+    assert Size.from_string(string) == expected
 
 
 @pytest.mark.parametrize('string', [
@@ -155,65 +155,65 @@ def test_from_string(string: str, expected: int) -> None:
 ])
 def test_from_string_not_valid(string: str) -> None:
     with pytest.raises(ValueError):
-        Bytes.from_string(string)
+        Size.from_string(string)
 
 
 @pytest.mark.parametrize('value, unit, expected', [
-    (Bytes(1), ByteSize.B, 1),
-    (Bytes(0), ByteSize.B, 0),
-    (Bytes(-1), ByteSize.B, -1),
+    (Size(1), SizeUnit.B, 1),
+    (Size(0), SizeUnit.B, 0),
+    (Size(-1), SizeUnit.B, -1),
 
-    (Bytes(KB), ByteSize.KiB, 1),
-    (Bytes(1, ByteSize.KiB), ByteSize.B, KB),
+    (Size(KB), SizeUnit.KiB, 1),
+    (Size(1, SizeUnit.KiB), SizeUnit.B, KB),
 
-    (Bytes(KB, ByteSize.MiB), ByteSize.GiB, 1),
-    (Bytes(1, ByteSize.GiB), ByteSize.MiB, KB),
+    (Size(KB, SizeUnit.MiB), SizeUnit.GiB, 1),
+    (Size(1, SizeUnit.GiB), SizeUnit.MiB, KB),
 
-    (Bytes(KB, ByteSize.MiB), ByteSize.GiB, 1),
-    (Bytes(1, ByteSize.GiB), ByteSize.MiB, KB),
+    (Size(KB, SizeUnit.MiB), SizeUnit.GiB, 1),
+    (Size(1, SizeUnit.GiB), SizeUnit.MiB, KB),
 
-    (Bytes(KB, ByteSize.GiB), ByteSize.TiB, 1),
-    (Bytes(1, ByteSize.TiB), ByteSize.GiB, KB),
+    (Size(KB, SizeUnit.GiB), SizeUnit.TiB, 1),
+    (Size(1, SizeUnit.TiB), SizeUnit.GiB, KB),
 
-    (Bytes(KB, ByteSize.TiB), ByteSize.GiB, KB),
+    (Size(KB, SizeUnit.TiB), SizeUnit.GiB, KB),
 
-    (Bytes(1536, ByteSize.KiB), ByteSize.GiB, 1.5),
-    (Bytes(-1.5, ByteSize.GiB), ByteSize.KiB, -1536),
+    (Size(1536, SizeUnit.KiB), SizeUnit.GiB, 1.5),
+    (Size(-1.5, SizeUnit.GiB), SizeUnit.KiB, -1536),
 
-    (Bytes(2, ByteSize.MiB), ByteSize.B, 2 * MB),
-    (Bytes(-2, ByteSize.GiB), ByteSize.B, -2 * MB),
+    (Size(2, SizeUnit.MiB), SizeUnit.B, 2 * MB),
+    (Size(-2, SizeUnit.GiB), SizeUnit.B, -2 * MB),
 ])
-def test_convert_to(value: Bytes, unit: ByteSize, expected: int) -> None:
+def test_convert_to(value: Size, unit: SizeUnit, expected: int) -> None:
     pytest.approx(value.convert_to(unit), expected)
 
 
 @pytest.mark.parametrize('value, expected', [
-    (Bytes(1), '1 B'),
-    (Bytes(KB), '1.00 KiB'),
-    (Bytes(KB, ByteSize.KiB), '1.00 MiB'),
-    (Bytes(KB, ByteSize.MiB), '1.00 GiB'),
-    (Bytes(KB, ByteSize.GiB), '1.00 TiB'),
-    (Bytes(KB, ByteSize.TiB), '1024.00 TiB'),
+    (Size(1), '1 B'),
+    (Size(KB), '1.00 KiB'),
+    (Size(KB, SizeUnit.KiB), '1.00 MiB'),
+    (Size(KB, SizeUnit.MiB), '1.00 GiB'),
+    (Size(KB, SizeUnit.GiB), '1.00 TiB'),
+    (Size(KB, SizeUnit.TiB), '1024.00 TiB'),
 
-    (Bytes(1.5), '2 B'),
-    (Bytes(1536), '1.50 KiB'),
-    (Bytes(1536, ByteSize.KiB), '1.50 MiB'),
-    (Bytes(1536, ByteSize.MiB), '1.50 GiB'),
-    (Bytes(1536, ByteSize.GiB), '1.50 TiB'),
-    (Bytes(1536, ByteSize.TiB), '1536.00 TiB'),
+    (Size(1.5), '2 B'),
+    (Size(1536), '1.50 KiB'),
+    (Size(1536, SizeUnit.KiB), '1.50 MiB'),
+    (Size(1536, SizeUnit.MiB), '1.50 GiB'),
+    (Size(1536, SizeUnit.GiB), '1.50 TiB'),
+    (Size(1536, SizeUnit.TiB), '1536.00 TiB'),
 
-    (Bytes(-1.5), '-2 B'),
-    (Bytes(-1536), '-1.50 KiB'),
-    (Bytes(-1536, ByteSize.KiB), '-1.50 MiB'),
-    (Bytes(-1536, ByteSize.MiB), '-1.50 GiB'),
-    (Bytes(-1536, ByteSize.GiB), '-1.50 TiB'),
-    (Bytes(-1536, ByteSize.TiB), '-1536.00 TiB')
+    (Size(-1.5), '-2 B'),
+    (Size(-1536), '-1.50 KiB'),
+    (Size(-1536, SizeUnit.KiB), '-1.50 MiB'),
+    (Size(-1536, SizeUnit.MiB), '-1.50 GiB'),
+    (Size(-1536, SizeUnit.GiB), '-1.50 TiB'),
+    (Size(-1536, SizeUnit.TiB), '-1536.00 TiB')
 ])
-def test_to_str(value: Bytes, expected: str) -> None:
+def test_to_str(value: Size, expected: str) -> None:
     assert str(value) == expected
 
 
 def test_repr() -> None:
-    with patch.object(Bytes, '__str__', return_value='test') as mock:
-        assert repr(Bytes(1)) == 'Bytes(test)'
+    with patch.object(Size, '__str__', return_value='test') as mock:
+        assert repr(Size(1)) == 'Size(test)'
         mock.assert_called_once_with()
