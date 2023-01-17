@@ -10,11 +10,33 @@ class SizeUnit(IntEnum):
     GiB = 1024 * MiB
     TiB = 1024 * GiB
 
+    @classmethod
+    def from_unit_prefix(cls, unit_prefix: str) -> 'SizeUnit':
+        if unit_prefix == '':
+            return cls.B
+        unit = f"{unit_prefix.upper()}iB"
+        return cls[unit]
+
+
+class SizeUnitSI(IntEnum):
+    B = 1
+    KB = 1000
+    MB = 1000 * KB
+    GB = 1000 * MB
+    TB = 1000 * GB
+
+    @classmethod
+    def from_unit_prefix(cls, unit_prefix: str) -> 'SizeUnitSI':
+        if unit_prefix == '':
+            return cls.B
+        unit = f"{unit_prefix.upper()}B"
+        return cls[unit]
+
 
 class Size(int):
     """Size class for easier byte representation."""
 
-    def __new__(cls, value: Union[int, float, str], unit: SizeUnit = SizeUnit.B) -> 'Size':
+    def __new__(cls, value: Union[int, float, str], unit: Union[SizeUnit, SizeUnitSI] = SizeUnit.B) -> 'Size':
         if isinstance(value, int):
             return super().__new__(cls, value * unit)
         if isinstance(value, float):
@@ -23,7 +45,7 @@ class Size(int):
             return super().__new__(cls, round(float(value) * unit.value))
         raise TypeError(f"Cannot convert {type(value)} to Size.")
 
-    def __init__(self, _value: Union[int, float, str], _unit: SizeUnit = SizeUnit.B):
+    def __init__(self, _value: Union[int, float, str], _unit: Union[SizeUnit, SizeUnitSI] = SizeUnit.B):
         self._string: Optional[str] = None
 
     @classmethod
@@ -35,30 +57,32 @@ class Size(int):
         :return: Size object.
         """
 
-        # Remove whitespace and lowercase the string
+        # IEC: 1 KiB = 1024 B; SI: 1 KB = 1000 B
+        iec_format = True
+        unit_prefix = ''
+
+        # Remove whitespace and lowercase the string.
         sanitized = string.rstrip().lower()
 
-        # Remove the unit from the string
+        # Remove the unit from the string.
         if sanitized.endswith('ib'):
             sanitized = sanitized[:-2]
-        if sanitized.endswith('b'):
+        elif sanitized.endswith('b'):
+            iec_format = False
             sanitized = sanitized[:-1]
 
-        # Check binary prefix and return the correct value
+        # Check unit prefix and return the correct value.
         try:
-            if sanitized.endswith('k'):
-                return cls(sanitized[:-1], SizeUnit.KiB)
-            if sanitized.endswith('m'):
-                return cls(sanitized[:-1], SizeUnit.MiB)
-            if sanitized.endswith('g'):
-                return cls(sanitized[:-1], SizeUnit.GiB)
-            if sanitized.endswith('t'):
-                return cls(sanitized[:-1], SizeUnit.TiB)
-            return cls(sanitized)
-        except ValueError as e:
+            if sanitized.endswith(('k', 'm', 'g', 't')):
+                unit_prefix = sanitized[-1:]
+                sanitized = sanitized[:-1]
+            if iec_format:
+                return Size(sanitized, SizeUnit.from_unit_prefix(unit_prefix))
+            return Size(sanitized, SizeUnitSI.from_unit_prefix(unit_prefix))
+        except (ValueError, KeyError) as e:
             raise ValueError(f"Could not convert '{string}'") from e
 
-    def convert_to(self, unit: SizeUnit) -> float:
+    def convert_to(self, unit: Union[SizeUnit, SizeUnitSI]) -> float:
         """
         Convert to given unit.
 
