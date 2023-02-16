@@ -16,7 +16,7 @@ class PackageType(str, Enum):
 
 # Defaults.
 DEFAULT_ENTRYPOINT = '__main__'
-DEFAULT_NAMESPACE = 'default'
+DEFAULT_NAMESPACE = 'local'
 DEFAULT_PACKAGETYPE = PackageType.QUESTIONTYPE
 
 # Regular expressions.
