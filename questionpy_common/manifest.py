@@ -1,7 +1,7 @@
+import re
 from enum import Enum
 from keyword import iskeyword, issoftkeyword
 from typing import Optional, Union, Annotated
-from urllib.parse import quote
 
 from pydantic import BaseModel
 from pydantic.class_validators import validator
@@ -20,8 +20,9 @@ DEFAULT_NAMESPACE = 'default'
 DEFAULT_PACKAGETYPE = PackageType.QUESTIONTYPE
 
 # Regular expressions.
-RE_SEMVER = r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)' \
-            r'(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+RE_SEMVER = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)'
+                       r'(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
+RE_VALID_CHARS = re.compile(r"^[a-z1-9_]+$")
 
 
 # Validators.
@@ -37,24 +38,30 @@ def ensure_is_valid_name(name: str) -> str:
     :param name: the name to be checked
     :return: name
     """
-    if len(name) > 127:
-        raise ValueError("can only have at most 127 character")
+    length = len(name)
+
+    if length < 1:
+        raise ValueError("can not be empty")
+    if not RE_VALID_CHARS.match(name):
+        raise ValueError("can only contain lowercase alphanumeric characters and underscores")
+    if length > 127:
+        raise ValueError("can have at most 127 characters")
+    if name[0].isdigit():
+        raise ValueError("can not start with a digit")
     if not name.isidentifier():
-        raise ValueError("is not valid")
+        # This check should be redundant - we keep it just in case.
+        raise ValueError("is not a valid Python identifier")
     if iskeyword(name) or issoftkeyword(name) or name in ["_", "case", "match"]:
         raise ValueError("can not be a Python keyword")
-    if not name.islower():
-        raise ValueError("has to be lowercase")
-    if quote(name) != name:
-        raise ValueError("can only contain URL-friendly characters")
+
     return name
 
 
 class Manifest(BaseModel):
     short_name: str
     namespace: str = DEFAULT_NAMESPACE
-    version: Annotated[str, Field(regex=RE_SEMVER)]
-    api_version: Annotated[str, Field(regex=RE_SEMVER)]
+    version: Annotated[str, Field(regex=RE_SEMVER.pattern)]
+    api_version: Annotated[str, Field(regex=RE_SEMVER.pattern)]
     author: str
     name: dict[str, str] = {}
     entrypoint: str = DEFAULT_ENTRYPOINT

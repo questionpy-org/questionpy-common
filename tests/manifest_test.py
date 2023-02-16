@@ -63,6 +63,7 @@ def test_not_valid_manifest(data: dict[str, Any], error_message: str) -> None:
     'name_',
     '_name_',
     '_a_name_',
+    'a' * 127
 ))
 def test_valid_name(field: str, name: str) -> None:
     manifest = minimal_manifest.copy()
@@ -75,20 +76,21 @@ def test_valid_name(field: str, name: str) -> None:
     'namespace'
 ))
 @pytest.mark.parametrize('name, error_message', (
-    ['notValid', 'has to be lowercase'],
-    ['', 'is not valid'],
-    [' not_valid', 'is not valid'],
-    ['not_valid ', 'is not valid'],
-    ['not-valid', 'is not valid'],
-    ['not~valid', 'is not valid'],
-    ['not valid', 'is not valid'],
-    ['42', 'is not valid'],
+    ['', 'can not be empty'],
+    ['notValid', 'can only contain lowercase alphanumeric characters and underscores'],
+    [' not_valid', 'can only contain lowercase alphanumeric characters and underscores'],
+    ['not_valid ', 'can only contain lowercase alphanumeric characters and underscores'],
+    ['not-valid', 'can only contain lowercase alphanumeric characters and underscores'],
+    ['not~valid', 'can only contain lowercase alphanumeric characters and underscores'],
+    ['not valid', 'can only contain lowercase alphanumeric characters and underscores'],
+    ['\u03c0', 'can only contain lowercase alphanumeric characters and underscores'],
+    ['a' * 128, 'can have at most 127 characters'],
+    ['42', 'can not start with a digit'],
     ['def', 'can not be a Python keyword'],
     ['class', 'can not be a Python keyword'],
     ['global', 'can not be a Python keyword'],
     ['match', 'can not be a Python keyword'],
-    ['_', 'can not be a Python keyword'],
-    ['\u03c0', 'can only contain URL-friendly characters']
+    ['_', 'can not be a Python keyword']
 ))
 def test_not_valid_name(field: str, name: str, error_message: str) -> None:
     error = f'1 validation error for Manifest\n{field}\n  {error_message}'
