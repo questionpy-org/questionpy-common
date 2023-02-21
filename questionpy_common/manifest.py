@@ -22,6 +22,7 @@ DEFAULT_PACKAGETYPE = PackageType.QUESTIONTYPE
 # Regular expressions.
 RE_SEMVER = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)'
                        r'(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
+RE_API = re.compile(r'^\d+\.\d+$')
 RE_VALID_CHARS = re.compile(r"^[a-z1-9_]+$")
 
 
@@ -29,11 +30,11 @@ RE_VALID_CHARS = re.compile(r"^[a-z1-9_]+$")
 def ensure_is_valid_name(name: str) -> str:
     """
     Raises ValueError if the given name does not match the following conditions:
-    It should be:
-        - a valid Python identifier
-        - NOT a Python keyword
-        - lowercase
-        - URL-friendly (i.e. only characters which will not be %-escaped)
+        - contains only lowercase alphanumeric characters and underscores
+        - is 1 - 127 characters long
+        - does not start with a number
+        - is a valid Python identifier
+        - is NOT a Python keyword
 
     :param name: the name to be checked
     :return: name
@@ -61,7 +62,7 @@ class Manifest(BaseModel):
     short_name: str
     namespace: str = DEFAULT_NAMESPACE
     version: Annotated[str, Field(regex=RE_SEMVER.pattern)]
-    api_version: Annotated[str, Field(regex=RE_SEMVER.pattern)]
+    api_version: Annotated[str, Field(regex=RE_API.pattern)]
     author: str
     name: dict[str, str] = {}
     entrypoint: str = DEFAULT_ENTRYPOINT

@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from questionpy_common.manifest import Manifest, PackageType
 
-minimal_manifest: Dict[str, Any] = {'short_name': 'short_name', 'version': '0.1.0', 'api_version': '0.1.0',
+minimal_manifest: Dict[str, Any] = {'short_name': 'short_name', 'version': '0.1.0', 'api_version': '0.1',
                                     'author': 'John Doe'}
 maximal_manifest = {**minimal_manifest, 'name': {'en': 'test_name'}, 'entrypoint': 'test_entrypoint',
                     'url': 'https://example.com/package', 'languages': {'en'},
