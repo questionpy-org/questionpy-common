@@ -23,7 +23,7 @@ DEFAULT_PACKAGETYPE = PackageType.QUESTIONTYPE
 RE_SEMVER = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)'
                        r'(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
 RE_API = re.compile(r'^\d+\.\d+$')
-RE_VALID_CHARS = re.compile(r"^[a-z1-9_]+$")
+RE_VALID_CHARS_NAME = re.compile(r"^[a-z\d_]+$")
 
 
 # Validators.
@@ -43,7 +43,7 @@ def ensure_is_valid_name(name: str) -> str:
 
     if length < 1:
         raise ValueError("can not be empty")
-    if not RE_VALID_CHARS.match(name):
+    if not RE_VALID_CHARS_NAME.match(name):
         raise ValueError("can only contain lowercase alphanumeric characters and underscores")
     if length > 127:
         raise ValueError("can have at most 127 characters")
