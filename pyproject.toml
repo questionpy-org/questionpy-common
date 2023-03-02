@@ -14,16 +14,18 @@ python = "^3.9"
 pydantic = "^1.9.1"
 pydantic-factories = "^1.6.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pylint = "^2.14.5"
 pytest = "^7.1.2"
 pytest-md = "^0.2.0"
 pylint-pytest = "^1.1.2"
 mypy = "^0.971"
 flake8 = "^5.0.4"
-coverage = { extras = ["toml"], version = "^6.5.0" }
+
+[tool.poetry.group.ci.dependencies]
 tox = "^4.2.6"
 tox-gh-actions = "^3.0.0"
+coverage = { extras = ["toml"], version = "^6.5.0" }
 
 
 [tool.pytest.ini_options]
