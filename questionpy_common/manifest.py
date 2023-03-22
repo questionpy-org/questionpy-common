@@ -1,11 +1,12 @@
 import re
 from enum import Enum
 from keyword import iskeyword, issoftkeyword
-from typing import Optional, Union, Annotated
+from typing import Optional, Union
 
 from pydantic import BaseModel
 from pydantic.class_validators import validator
-from pydantic.fields import Field
+
+from questionpy_common.version import SemVer, APIVersion
 
 
 class PackageType(str, Enum):
@@ -20,9 +21,6 @@ DEFAULT_NAMESPACE = 'local'
 DEFAULT_PACKAGETYPE = PackageType.QUESTIONTYPE
 
 # Regular expressions.
-RE_SEMVER = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)'
-                       r'(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
-RE_API = re.compile(r'^\d+\.\d+$')
 RE_VALID_CHARS_NAME = re.compile(r"^[a-z\d_]+$")
 
 
@@ -61,8 +59,8 @@ def ensure_is_valid_name(name: str) -> str:
 class Manifest(BaseModel):
     short_name: str
     namespace: str = DEFAULT_NAMESPACE
-    version: Annotated[str, Field(regex=RE_SEMVER.pattern)]
-    api_version: Annotated[str, Field(regex=RE_API.pattern)]
+    version: SemVer
+    api_version: APIVersion
     author: str
     name: dict[str, str] = {}
     entrypoint: str = DEFAULT_ENTRYPOINT
@@ -84,3 +82,9 @@ class Manifest(BaseModel):
     @property
     def identifier(self) -> str:
         return f"@{self.namespace}/{self.short_name}"
+
+    class Config:
+        json_encoders = {
+            SemVer: str,
+            APIVersion: str
+        }
