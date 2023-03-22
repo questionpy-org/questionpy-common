@@ -1,3 +1,5 @@
+# pylint: disable=protected-access, unneeded-not
+
 from typing import Optional
 
 import pytest
@@ -64,11 +66,11 @@ def test_parse_api_version_unsuccessfully(version: str) -> None:
 
 
 @pytest.mark.parametrize('v_1, v_2', [
-    ('0.0', '1.0'),
-    ('0.0', '1.0'),
-    ('0.0', '1.0'),
-    ('0.0', '1.0'),
-    ('0.0', '1.0'),
+    ('0.0', '0.1'),
+    ('0.1', '1.0'),
+    ('1.0', '1.1'),
+    ('1.0', '2.0'),
+    ('11.0', '12.0'),
 ])
 def test_compare_api_version_inequality(v_1: str, v_2: str) -> None:
     version_1 = APIVersion._parse(v_1)
@@ -94,7 +96,23 @@ def test_compare_api_version_equality(version: str) -> None:
     assert version_1 == version_2
     assert version_1 <= version_2
     assert version_1 >= version_2
-    assert not version_1 != version_2  # pylint: disable unneeded-not
+    assert not version_1 != version_2
+
+
+@pytest.mark.parametrize('v_1, v_2', [
+    ('0.0', '0.00'),
+    ('01.1', '1.1'),
+    ('001.100', '1.100'),
+    ('01.000', '0001.0')
+])
+def test_compare_special_api_version_equality(v_1: str, v_2: str) -> None:
+    version_1 = APIVersion._parse(v_1)
+    version_2 = APIVersion._parse(v_2)
+
+    assert version_1 == version_2
+    assert version_1 <= version_2
+    assert version_1 >= version_2
+    assert not version_1 != version_2
 
 
 @pytest.mark.parametrize('major, minor', [
