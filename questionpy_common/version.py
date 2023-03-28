@@ -8,7 +8,9 @@ class _ComparableVersion:
     """
     A multipart version that can be compared to other versions.
     """
-    def __init__(self, *parts: int):
+    def __init__(self, part: int, *parts: int):
+        parts = (part,) + parts
+
         for part in parts:
             if part < 0:
                 raise ValueError("negative version parts are not allowed")
