@@ -18,21 +18,21 @@ class _ComparableVersion:
         self._length = len(parts)
         self._parts = parts
 
-    def _lt(self, other: '_ComparableVersion', pos: int = 0) -> bool:
-        if self._parts[pos] < other._parts[pos]:
-            return True
-        if self._parts[pos] == other._parts[pos] and pos < self._length - 1:
-            return self._lt(other, pos + 1)
-        return False
-
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, _ComparableVersion) or self._length != other._length:
-            raise NotImplementedError()
-        return self._lt(other)
+            return NotImplemented
+
+        for left, right in zip(self._parts, other._parts):
+            if left < right:
+                return True
+            if left > right:
+                return False
+
+        return False
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, _ComparableVersion):
-            raise NotImplementedError()
+        if not isinstance(other, _ComparableVersion) or self._length != other._length:
+            return NotImplemented
         return self._parts == other._parts
 
 
