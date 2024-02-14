@@ -3,13 +3,17 @@
 #  (c) Technische Universität Berlin, innoCampus <info@isis.tu-berlin.de>
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Optional, Annotated
+from typing import Optional, Annotated, Union, Mapping, TYPE_CHECKING
 
 from pydantic import BaseModel, Field
+from typing_extensions import Self
 
 from .attempt import BaseAttempt
 
 __all__ = ["ScoringMethod", "PossibleResponse", "SubquestionModel", "QuestionModel", "BaseQuestion"]
+
+if TYPE_CHECKING:
+    from .qtype import BaseQuestionType
 
 
 class ScoringMethod(Enum):
@@ -57,29 +61,27 @@ class BaseQuestion(ABC):
 
     @abstractmethod
     def get_attempt(self, attempt_state: str, scoring_state: Optional[str] = None,
-                    response: Optional[dict] = None, compute_score: bool = False,
-                    generate_hint: bool = False) -> BaseAttempt:
+                    response: Optional[dict] = None) -> BaseAttempt:
         """Create an attempt object for a previously started attempt.
 
         Args:
-            attempt_state: The `attempt_state` attribute of an attempt which was previously returned by
-                           :meth:`start_attempt`.
-            scoring_state: Not implemented.
+            attempt_state: The attempt state, as previously returned by your implementation of
+                           :meth:`BaseAttempt.get_state`.
+            scoring_state: The scoring state, as previously returned by your implementation of :meth:`Score.get_state`.
             response: The response currently entered by the student.
-            compute_score: Whether the attempt is retrieved to be scored.
-            generate_hint: Whether the package should generate a hint for the student.
 
         Returns:
             A :class:`BaseAttempt` object which should be identical to the one which generated the given state(s).
         """
 
     @abstractmethod
-    def export_question_state(self) -> str:
-        """Serialize this question's relevant data.
+    def get_state(self) -> Union[str, Mapping[str, object], BaseModel]:
+        """"""
 
-        A future call to :meth:`BaseQuestionType.create_question_from_state` should result in a question object
-        identical to the one which exported the state.
-        """
+    @classmethod
+    @abstractmethod
+    def from_state(cls, qtype: "BaseQuestionType", state: str) -> Self:
+        """"""
 
     @abstractmethod
     def export(self) -> QuestionModel:

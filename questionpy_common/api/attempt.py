@@ -3,13 +3,18 @@
 #  (c) Technische Universität Berlin, innoCampus <info@isis.tu-berlin.de>
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Sequence, Annotated
+from typing import Optional, Sequence, Annotated, Union, Mapping, TYPE_CHECKING, Generic, TypeVar
 
 from pydantic import BaseModel, Field
+from typing_extensions import Self
 
 __all__ = ["CacheControl", "UiFile", "AttemptUi", "AttemptModel", "ScoringCode", "ClassifiedResponse",
            "ScoreModel", "AttemptScoredModel", "BaseAttempt"]
+
+if TYPE_CHECKING:
+    pass
 
 
 class CacheControl(Enum):
@@ -66,20 +71,38 @@ class AttemptScoredModel(AttemptModel, ScoreModel):
     pass
 
 
-class BaseAttempt(ABC):
+class Score(BaseModel):
+    code: ScoringCode
+    fraction: Optional[float] = None
+    classification: Optional[Sequence[ClassifiedResponse]] = None
+
+    def get_state(self) -> Union[str, Mapping[str, object], BaseModel]:
+        return self
+
+    @classmethod
+    def from_state(cls, state: str) -> Self:
+        return cls.model_validate_json(state)
+
+
+_Q = TypeVar("_Q", bound="BaseQuestion")
+
+
+class BaseAttempt(ABC, Generic[_Q]):
 
     @abstractmethod
-    def export_attempt_state(self) -> str:
-        """Serialize this attempt's relevant data.
+    def get_state(self) -> Union[str, Mapping[str, object], BaseModel]:
+        """"""
 
-        A future call to :meth:`BaseQuestion.view_attempt` should result in an attempt object identical to the one which
-        exported the state.
-        """
+    @classmethod
+    @abstractmethod
+    def from_state(cls, question: _Q, attempt_state: str, scoring_state: Optional[str],
+                   response: Optional[dict]) -> Self:
+        """"""
+
+    @abstractmethod
+    def score_response(self) -> Score:
+        """"""
 
     @abstractmethod
     def export(self) -> AttemptModel:
         """Get metadata about this attempt."""
-
-    @abstractmethod
-    def export_scored_attempt(self) -> AttemptScoredModel:
-        """Score this attempt."""
