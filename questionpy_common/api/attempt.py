@@ -9,7 +9,7 @@ from typing import Optional, Sequence, Annotated
 from pydantic import BaseModel, Field
 
 __all__ = ["CacheControl", "UiFile", "AttemptUi", "AttemptModel", "ScoringCode", "ClassifiedResponse",
-           "ScoreModel", "AttemptScoredModel", "BaseAttempt"]
+           "Score", "AttemptScoredModel", "BaseAttempt"]
 
 
 class CacheControl(Enum):
@@ -54,7 +54,7 @@ class ClassifiedResponse(BaseModel):
     score: float
 
 
-class ScoreModel(BaseModel):
+class AttemptScoredModel(AttemptModel):
     scoring_state: str = "{}"
     scoring_code: ScoringCode
     score: Optional[float]
@@ -62,24 +62,31 @@ class ScoreModel(BaseModel):
     classification: Optional[Sequence[ClassifiedResponse]] = None
 
 
-class AttemptScoredModel(AttemptModel, ScoreModel):
-    pass
+class Score(BaseModel):
+    """A score for a particular response during a question attempt."""
+    code: ScoringCode
+    fraction: Optional[float] = None
+    classification: Optional[Sequence[ClassifiedResponse]] = None
+
+    def export_scoring_state(self) -> str:
+        """Serialize the score's relevant data."""
+        return self.model_dump_json()
 
 
 class BaseAttempt(ABC):
 
     @abstractmethod
+    def score_response(self) -> Score:
+        """Score the current response (which was passed to :meth:`BaseQuestion.get_attempt`)."""
+
+    @abstractmethod
     def export_attempt_state(self) -> str:
         """Serialize this attempt's relevant data.
 
-        A future call to :meth:`BaseQuestion.view_attempt` should result in an attempt object identical to the one which
+        A future call to :meth:`BaseQuestion.get_attempt` should result in an attempt object identical to the one which
         exported the state.
         """
 
     @abstractmethod
     def export(self) -> AttemptModel:
         """Get metadata about this attempt."""
-
-    @abstractmethod
-    def export_scored_attempt(self) -> AttemptScoredModel:
-        """Score this attempt."""

@@ -62,9 +62,10 @@ class BaseQuestion(ABC):
         """Create an attempt object for a previously started attempt.
 
         Args:
-            attempt_state: The `attempt_state` attribute of an attempt which was previously returned by
-                           :meth:`start_attempt`.
-            scoring_state: Not implemented.
+            attempt_state: The attempt state, as previously returned by your implementation of
+                           :meth:`BaseAttempt.export_attempt_state()`.
+            scoring_state: The scoring state, as previously returned by your implementation of
+                           :meth:`Score.export_scoring_state()`.
             response: The response currently entered by the student.
             compute_score: Whether the attempt is retrieved to be scored.
             generate_hint: Whether the package should generate a hint for the student.
