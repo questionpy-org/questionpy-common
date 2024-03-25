@@ -2,30 +2,39 @@
 #  QuestionPy is free software released under terms of the MIT license. See LICENSE.md.
 #  (c) Technische Universität Berlin, innoCampus <info@isis.tu-berlin.de>
 from abc import abstractmethod
-from collections.abc import Sequence, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from contextvars import ContextVar
 from dataclasses import dataclass
 from importlib.abc import Traversable
-from typing import Union, Literal, Callable, Optional, Protocol
-
-from typing_extensions import TypeAlias
+from typing import Protocol, TypeAlias
 
 from questionpy_common.api.qtype import BaseQuestionType
 from questionpy_common.manifest import Manifest
 
-__all__ = ["RequestUser", "WorkerResourceLimits", "Package", "OnRequestCallback", "Environment", "PackageInitFunction",
-           "get_qpy_environment", "set_qpy_environment", "NoEnvironmentError"]
+__all__ = [
+    "Environment",
+    "NoEnvironmentError",
+    "OnRequestCallback",
+    "Package",
+    "PackageInitFunction",
+    "RequestUser",
+    "WorkerResourceLimits",
+    "get_qpy_environment",
+    "set_qpy_environment",
+]
 
 
 @dataclass
 class RequestUser:
     """Preferences of the user that a request is being processed for."""
+
     preferred_languages: Sequence[str]
 
 
 @dataclass
 class WorkerResourceLimits:
     """Maximum resources that a worker process is allowed to consume."""
+
     max_memory: int
     max_cpu_time_seconds_per_call: float
 
@@ -33,8 +42,7 @@ class WorkerResourceLimits:
 class Package(Protocol):
     @property
     @abstractmethod
-    def manifest(self) -> Manifest:
-        ...
+    def manifest(self) -> Manifest: ...
 
     @abstractmethod
     def get_path(self, path: str) -> Traversable:
@@ -51,7 +59,7 @@ OnRequestCallback: TypeAlias = Callable[[RequestUser], None]
 
 
 class Environment(Protocol):
-    type: Union[Literal["process", "thread", "container"], str]
+    type: str
     """The kind of worker we are running in.
 
     The well-known values are:
@@ -63,9 +71,9 @@ class Environment(Protocol):
 
     Other worker types may be added in future. (Hence the :class:`str` type.)
     """
-    limits: Optional[WorkerResourceLimits]
+    limits: WorkerResourceLimits | None
     """The resource limits imposed on the worker, if any."""
-    request_user: Optional[RequestUser]
+    request_user: RequestUser | None
     """If the worker is currently processing a request, information about the user that it is being processed for.
 
     When no request is being processed (such as during a call to the package's `init` function), this will be None.
@@ -85,10 +93,10 @@ class Environment(Protocol):
         """
 
 
-PackageInitFunction: TypeAlias = Union[Callable[[Environment], BaseQuestionType], Callable[[], BaseQuestionType]]
+PackageInitFunction: TypeAlias = Callable[[Environment], BaseQuestionType] | Callable[[], BaseQuestionType]
 """Signature of the "init"-function expected in the main package."""
 
-_current_env: ContextVar[Union[Environment, None]] = ContextVar("_current_env")
+_current_env: ContextVar[Environment | None] = ContextVar("_current_env")
 
 
 def get_qpy_environment() -> Environment:
@@ -100,11 +108,12 @@ def get_qpy_environment() -> Environment:
     """
     env = _current_env.get(None)
     if not env:
-        raise NoEnvironmentError("No QPy environment is set in the current context")
+        msg = "No QPy environment is set in the current context"
+        raise NoEnvironmentError(msg)
     return env
 
 
-def set_qpy_environment(env: Optional[Environment]) -> None:
+def set_qpy_environment(env: Environment | None) -> None:
     _current_env.set(env)
 
 

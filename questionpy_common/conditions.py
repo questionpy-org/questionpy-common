@@ -3,12 +3,11 @@
 #  (c) Technische Universität Berlin, innoCampus <info@isis.tu-berlin.de>
 
 from abc import ABC
-from typing import Literal, Union, Annotated
+from typing import Annotated, Literal, TypeAlias
 
 from pydantic import BaseModel, Field
-from typing_extensions import TypeAlias
 
-_Value: TypeAlias = Union[str, int, bool]
+_Value: TypeAlias = str | int | bool
 
 
 class _BaseCondition(ABC, BaseModel):
@@ -39,4 +38,4 @@ class In(_BaseCondition):
     value: list[_Value]
 
 
-Condition = Annotated[Union[IsChecked, IsNotChecked, Equals, DoesNotEqual, In], Field(discriminator="kind")]
+Condition = Annotated[IsChecked | IsNotChecked | Equals | DoesNotEqual | In, Field(discriminator="kind")]
